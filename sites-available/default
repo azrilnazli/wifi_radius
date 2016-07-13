@@ -405,14 +405,13 @@ accounting {
         # Used QUOTA Value
         Tmp-Integer-0 := "%{sql:SELECT (SUM(acctinputoctets)+SUM(acctoutputoctets)) AS Total FROM radacct where acctstarttime >= CURDATE() AND radacct.username='%{User-Name}'}"
  
-        # Value of FUP Bandwidth limit that is 512k, It is stored in a separate table 
-        Tmp-String-5 := "%{sql: SELECT value FROM fup WHERE attribute='Mikrotik-Rate-Limit' AND username='%{User-Name}'}"
- 
-        #Value of Actual QUOTA Allowed
-        Tmp-String-1 := "%{sql:  SELECT value FROM radcheck WHERE attribute='Mikrotik-Total-Limit' AND username='%{User-Name}'}"
- 
+        Tmp-String-1 := "%{sql: SELECT volume FROM packages WHERE id=%{sql: SELECT package_id FROM hotspots WHERE username='%{User-Name}'}}"
+        
         Tmp-String-3 := "%{sql:select calledstationid from radacct where acctsessionid='%{Acct-Session-Id}'}"
+    
     }
+
+    
  
     if ("%{control:Tmp-Integer-0}" > "%{control:Tmp-String-1}"){
         # Update COA to Mikrotik
@@ -421,10 +420,7 @@ accounting {
             Acct-Session-Id = "%{Acct-Session-Id}"
             NAS-IP-Address = "%{NAS-IP-Address}"
             Framed-IP-Address = "%{Framed-IP-Address}"
-            #Mikrotik-Rate-Limit = "%{control:Tmp-String-5}"
-            Mikrotik-Rate-Limit = "56k/56k"
-            #Ascend-Xmit-Rate = "57344"
-            #Ascend-Data-Rate = "57344"
+            Mikrotik-Rate-Limit = "256k/256k"
         }   
     }
 
@@ -445,7 +441,7 @@ accounting {
 	#
 	#  Due to packet losses in the network, the data here
 	#  may be incorrect.  There is little we can do about it.
-#	radutmp
+	radutmp
 #	sradutmp
 
 	#  Return an address to the IP Pool when we see a stop record.
@@ -500,7 +496,7 @@ accounting {
 #  or rlm_sql module can handle this.
 #  The rlm_sql module is *much* faster
 session {
-	#radutmp
+	radutmp
 
 	#
 	#  See "Simultaneous Use Checking Queries" in sql.conf
